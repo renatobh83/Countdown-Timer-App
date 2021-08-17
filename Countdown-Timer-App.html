@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-size: 1.3rem;
+            background: #cccc;
+        }
+
+
+        .container {
+            margin: 0 auto;
+            max-width: 1220px;
+            padding: 20px;
+            height: 100vh;
+        }
+
+
+        .cardEvents {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .tileEvent {
+            width: 300px;
+            height: 200px;
+            box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
+            padding: 10px;
+            display: flex;
+            margin: 3px;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            background: white;
+        }
+
+
+        h5{
+            margin: 0;
+        }
+        svg {
+            width: 60px;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 3px;
+        }
+
+        svg circle {
+            stroke-dasharray: 113;
+            stroke-dashoffset: 113;
+            stroke-linecap: round;
+            stroke-width: 3px;
+            stroke: black;
+            fill: none;
+        }
+
+        svg text {
+            fill: black;
+            text-anchor: middle;
+            font-size: 12px;
+            font-family: "Arial";
+        }
+
+        .counters {
+            position: absolute;
+            bottom: 7px;
+        }
+       #remove {
+            display: flex;
+            height: 30px;
+            align-items: center;
+            justify-content: center;
+            border-radius: .2rem;
+            border: 0;
+            width: 100%;
+        }
+    </style>
+    <title>Countdown-Timer-App</title>
+</head>
+
+<body>
+    <div class="container">
+        <div class="dataInput">
+            <label for="event">Event</label>
+            <input type="text" name="event" id="event" />
+            <label for="data">Date</label>
+            <input type="datetime-local" name="data" id="data" />
+            <button type="submit" id="start">Start count</button>
+
+        </div>
+
+        <div class="cardEvents" id="card"></div>
+</body>
+<script>
+    const svgNS = "http://www.w3.org/2000/svg"
+    const htmlNS = "http://www.w3.org/1999/xhtml"
+    // const timers = ["years", "months", "weeks", "day", "hour", "minutes", "seconds"]
+    const timers = ["Dias", "Horas", "Minutos", "Segundos"]
+    let events = JSON.parse(localStorage.getItem("eventos") || "[]");
+
+    const event = document.getElementById("event")
+    const data = document.getElementById("data")
+    const start = document.getElementById("start")
+    const card = document.getElementById("card")
+
+
+    let circleEle = document.getElementsByTagNameNS(svgNS, "circle")
+    let textCicle = document.getElementsByTagNameNS(svgNS, "text")
+
+
+    start.addEventListener("click", () => {
+        if (!!data.value && !!event.value) {
+            card.style.display = "flex"
+            createElementEvent()
+            event.value = ""
+            data.value = ""
+        }
+
+    })
+
+  
+    if (events) {
+        events.forEach((ev, i) => {
+            event.value = ev.event,
+                data.value = ev.data
+            start.click()
+        })
+    }
+
+    function createElementEvent() {
+        const dataEvent = data.value
+
+        const divEl = document.createElement("div")
+
+        divEl.className = "tileEvent"
+   
+     
+
+        const h3 = document.createElement("h3")
+        h3.textContent = event.value
+        divEl.appendChild(h3)
+
+        const h5 = document.createElement("h5")
+        h5.textContent = new Date(dataEvent).toLocaleString("pt-br")
+
+        divEl.appendChild(h5)
+
+        const divCounter = document.createElement("div")
+        divCounter.id = event.value
+        divCounter.className = "counters"
+        divEl.appendChild(divCounter)
+       
+        for (let i = 0; i < timers.length; i++) {
+            const svg = document.createElementNS(svgNS, "svg")
+
+            const circle = document.createElementNS(svgNS, "circle")
+            circle.setAttribute("r", "18")
+            circle.setAttribute("cx", "50%")
+            circle.setAttribute("cy", "50%")
+
+
+            svg.appendChild(circle)
+
+
+            const text = document.createElementNS(svgNS, "text")
+            text.setAttribute("dy", ".3em")
+            text.setAttribute("x", "50%")
+            text.setAttribute("y", "50%")
+            text.textContent = "0"
+            text.id = timers[i]
+
+            const span = document.createElementNS(svgNS,"text")
+            span.setAttribute("x", "50%")
+            span.setAttribute("y", "90%")
+            span.setAttribute("dx", "-.1em")
+            span.textContent = timers[i]
+
+            svg.appendChild(span)
+            svg.appendChild(text)
+            divCounter.appendChild(svg)
+        }
+
+        document.getElementById("card").appendChild(divEl)
+
+        const element = document.getElementById(event.value)
+        if(events.length === 0){
+            
+             events.push({
+                    event: event.value,
+                    data: dataEvent
+                })
+                localStorage.setItem("eventos", JSON.stringify(events))
+        }
+        const index = events.findIndex(ev => ev.event === event.value)
+        if(index === -1){
+             events.push({
+                    event: event.value,
+                    data: dataEvent
+                })
+               
+                localStorage.setItem("eventos", JSON.stringify(events))
+        }
+
+        const id = setInterval(() => {
+            countTimer(dataEvent, element, id)
+
+        }, 1000)
+
+    }
+
+    function displayDiv(div) {
+        div.parentElement.style.background = "purple"
+        const button = document.createElement('button')
+        button.id = "remove"
+
+        button.textContent = "Remove event"
+        button.onclick =  () => removeEventPass(div)
+       document.getElementById(div.id).appendChild(button)
+       
+        
+    }
+
+function removeEventPass(div){
+     const event = div.parentElement.firstChild.textContent
+        const newArray = events.filter(ev => ev.event !== event)
+        localStorage.setItem("eventos", JSON.stringify(newArray))
+        div.parentElement.remove()
+}
+
+    const countTimer = (data, div, intervalName) => {
+
+        const dataNow = Date.now()
+        const eventData = new Date(data).getTime()
+        const diffDates = eventData - dataNow
+
+        const days = Math.floor(diffDates / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diffDates % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diffDates % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diffDates % (1000 * 60)) / 1000)
+
+       
+        // text
+        div.lastElementChild.parentElement.children[0].lastChild.textContent = days
+        div.lastElementChild.parentElement.children[1].lastChild.textContent = hours
+        div.lastElementChild.parentElement.children[2].lastChild.textContent = minutes
+        div.lastElementChild.parentElement.children[3].lastChild.textContent = seconds
+
+        //circle
+        div.lastElementChild.parentElement.children[0].firstChild.style.strokeDashoffset = dash(days)
+        div.lastElementChild.parentElement.children[1].firstChild.style.strokeDashoffset = dash(hours)
+        div.lastElementChild.parentElement.children[2].firstChild.style.strokeDashoffset = dash(minutes)
+        div.lastElementChild.parentElement.children[3].firstChild.style.strokeDashoffset = dash(seconds)
+
+
+
+        if (dataNow >= eventData) {
+            displayDiv(div)
+            clearInterval(intervalName)
+
+            div.lastElementChild.parentElement.children[0].lastChild.textContent = 0
+            div.lastElementChild.parentElement.children[1].lastChild.textContent = 0
+            div.lastElementChild.parentElement.children[2].lastChild.textContent = 0
+            div.lastElementChild.parentElement.children[3].lastChild.textContent = 0
+
+        }
+
+    }
+    const dash = (time) => {
+        const x = time
+        switch (true) {
+            case (x < 1):
+                return 0
+            case (x > 2 && x < 9):
+                return 10;
+            case (x >= 9 && x <= 15):
+                return 15;
+            case (x >= 16 && x <= 20):
+                return 20;
+            case (x > 4 && x < 9):
+                return 30;
+            case (x >= 21 && x <= 25):
+                return 40;
+            case (x >= 26 && x <= 30):
+                return 50;
+            case (x >= 31 && x <= 35):
+                return 60;
+            case (x >= 36 && x <= 40):
+                return 70;
+            case (x >= 41 && x <= 45):
+                return 80;
+            case (x >= 46 && x <= 50):
+                return 90;
+            case (x >= 51 && x <= 55):
+                return 100;
+            case (x >= 55 && x <= 59):
+                return 110;
+
+        }
+    }
+
+</script>
+
+</html>
