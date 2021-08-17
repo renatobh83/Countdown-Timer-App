@@ -6,5 +6,5 @@ We all have important events we look forward to in life, birthdays, anniversarie
 The objective of Countdown Timer is to provide a continuously decrementing display of the he months, days, hours, minutes, and seconds to a user entered event.
 
 
-https://github.com/renatobh83/Countdown-Timer-App/runs/3349970998
+https://github.com/renatobh83/Countdown-Timer-App/
 
